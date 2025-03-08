@@ -46,12 +46,14 @@
     // Function to start the camera and scan QR codes
     async function startScanner() {
       try {
-        // Request camera access
+        console.log("Requesting camera access...");
         const stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "environment" } // Use the rear camera
         });
         video.srcObject = stream;
         video.play();
+
+        console.log("Camera access granted. Starting QR scanner...");
 
         // Create a canvas to capture video frames
         const canvas = document.createElement("canvas");
@@ -74,8 +76,10 @@
 
             // If a QR code is found, display the result
             if (code) {
+              console.log("QR code detected:", code.data);
               resultDiv.textContent = `Scanned Number: ${code.data}`;
             } else {
+              console.log("No QR code detected.");
               resultDiv.textContent = "No QR code detected.";
             }
           }
