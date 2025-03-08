@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Scanner</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+    #scanner {
+      width: 100%;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    video {
+      width: 100%;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 1.5em;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h1>QR Code Scanner</h1>
+  <div id="scanner">
+    <video id="qr-video"></video>
+  </div>
+  <div id="result">Scan a QR code to see the result.</div>
+
+  <!-- Include jsQR library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+
+  <!-- Inline JavaScript -->
+  <script>
+    // Get elements from the DOM
+    const video = document.getElementById("qr-video");
+    const resultDiv = document.getElementById("result");
+
+    // Function to start the camera and scan QR codes
+    async function startScanner() {
+      try {
+        // Request camera access
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" } // Use the rear camera
+        });
+        video.srcObject = stream;
+        video.play();
+
+        // Create a canvas to capture video frames
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        // Function to scan QR codes
+        function scanQRCode() {
+          if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Get image data from the canvas
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+            // Use jsQR to decode the QR code
+            const code = jsQR(imageData.data, imageData.width, imageData.height, {
+              inversionAttempts: "dontInvert",
+            });
+
+            // If a QR code is found, display the result
+            if (code) {
+              resultDiv.textContent = `Scanned Number: ${code.data}`;
+            } else {
+              resultDiv.textContent = "No QR code detected.";
+            }
+          }
+
+          // Continue scanning
+          requestAnimationFrame(scanQRCode);
+        }
+
+        // Start scanning
+        scanQRCode();
+      } catch (error) {
+        console.error("Error accessing the camera:", error);
+        resultDiv.textContent = "Error accessing the camera. Please allow camera permissions.";
+      }
+    }
+
+    // Start the scanner when the page loads
+    startScanner();
+  </script>
+</body>
+</html>
