@@ -25,6 +25,20 @@
       font-size: 1.5em;
       color: green;
     }
+    #capture-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1em;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #capture-btn:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -32,6 +46,7 @@
   <div id="scanner">
     <video id="qr-video"></video>
   </div>
+  <button id="capture-btn" disabled>Capture QR Code</button>
   <div id="result">Scan a QR code to see the result.</div>
 
   <!-- Include jsQR library -->
@@ -41,6 +56,7 @@
   <script>
     // Get elements from the DOM
     const video = document.getElementById("qr-video");
+    const captureBtn = document.getElementById("capture-btn");
     const resultDiv = document.getElementById("result");
 
     // Function to start the camera and scan QR codes
@@ -54,6 +70,9 @@
         video.play();
 
         console.log("Camera access granted. Starting QR scanner...");
+
+        // Enable the capture button
+        captureBtn.disabled = false;
 
         // Create a canvas to capture video frames
         const canvas = document.createElement("canvas");
@@ -95,6 +114,34 @@
         resultDiv.textContent = "Error accessing the camera. Please allow camera permissions.";
       }
     }
+
+    // Add click event listener to the capture button
+    captureBtn.addEventListener("click", () => {
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+
+      // Capture the current frame from the video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Get image data from the canvas
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+      // Use jsQR to decode the QR code
+      const code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: "dontInvert",
+      });
+
+      // If a QR code is found, display the result
+      if (code) {
+        console.log("QR code detected:", code.data);
+        resultDiv.textContent = `Scanned Number: ${code.data}`;
+      } else {
+        console.log("No QR code detected.");
+        resultDiv.textContent = "No QR code detected.";
+      }
+    });
 
     // Start the scanner when the page loads
     startScanner();
