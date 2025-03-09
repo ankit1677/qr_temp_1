@@ -1,150 +1,93 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QR Code Scanner</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      margin: 20px;
-    }
-    #scanner {
-      width: 100%;
-      max-width: 500px;
-      margin: 0 auto;
-    }
-    video {
-      width: 100%;
-      border: 2px solid #ccc;
-      border-radius: 10px;
-    }
-    #result {
-      margin-top: 20px;
-      font-size: 1.5em;
-      color: red;
-    }
-    #capture-btn {
-      margin-top: 20px;
-      padding: 10px 20px;
-      font-size: 1em;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    #capture-btn:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
-  </style>
-</head>
-<body>
-  <h1>QR Code Scanner</h1>
-  <div id="scanner">
-    <video id="qr-video"></video>
-  </div>
-  <button id="capture-btn" disabled>Capture QR Code</button>
-  <div id="result">Scan a QR code to see the result.</div>
+// Get elements from the DOM
+const video = document.getElementById("qr-video");
+const captureBtn = document.getElementById("capture-btn");
+const resultDiv = document.getElementById("result");
 
-  <!-- Include jsQR library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
-
-  <!-- Inline JavaScript -->
-  <script>
-    // Get elements from the DOM
-    const video = document.getElementById("qr-video");
-    const captureBtn = document.getElementById("capture-btn");
-    const resultDiv = document.getElementById("result");
-
-    // Function to start the camera and scan QR codes
-    async function startScanner() {
-      try {
-        console.log("Requesting camera access...");
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" } // Use the rear camera
-        });
-        video.srcObject = stream;
-        video.play();
-
-        console.log("Camera access granted. Starting QR scanner...");
-
-        // Enable the capture button
-        captureBtn.disabled = false;
-
-        // Create a canvas to capture video frames
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-
-        // Function to scan QR codes
-        function scanQRCode() {
-          if (video.readyState === video.HAVE_ENOUGH_DATA) {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            // Get image data from the canvas
-            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-
-            // Use jsQR to decode the QR code
-            const code = jsQR(imageData.data, imageData.width, imageData.height, {
-              inversionAttempts: "dontInvert",
-            });
-
-            // If a QR code is found, display the result
-            if (code) {
-              console.log("QR code detected:", code.data);
-              resultDiv.textContent = `Scanned Number: ${code.data}`;
-            } else {
-              console.log("No QR code detected.");
-              resultDiv.textContent = "No QR code detected.";
-            }
-          }
-
-          // Continue scanning
-          requestAnimationFrame(scanQRCode);
-        }
-
-        // Start scanning
-        scanQRCode();
-      } catch (error) {
-        console.error("Error accessing the camera:", error);
-        resultDiv.textContent = "Error accessing the camera. Please allow camera permissions.";
-      }
-    }
-
-    // Add click event listener to the capture button
-    captureBtn.addEventListener("click", () => {
-      const canvas = document.createElement("canvas");
-      const context = canvas.getContext("2d");
-
-      // Capture the current frame from the video
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      // Get image data from the canvas
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-
-      // Use jsQR to decode the QR code
-      const code = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: "dontInvert",
-      });
-
-      // If a QR code is found, display the result
-      if (code) {
-        console.log("QR code detected:", code.data);
-        resultDiv.textContent = `Scanned Number: ${code.data}`;
-      } else {
-        console.log("No QR code detected.");
-        resultDiv.textContent = "No QR code detected.";
-      }
+// Function to start the camera and scan QR codes
+async function startScanner() {
+  try {
+    console.log("Requesting camera access...");
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" } // Use the rear camera
     });
+    video.srcObject = stream;
+    video.play();
 
-    // Start the scanner when the page loads
-    startScanner();
-  </script>
-</body>
-</html>
+    console.log("Camera access granted. Starting QR scanner...");
+
+    // Enable the capture button
+    captureBtn.disabled = false;
+
+    // Create a canvas to capture video frames
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    // Function to scan QR codes
+    function scanQRCode() {
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Get image data from the canvas
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        console.log("Image data captured:", imageData);
+
+        // Use jsQR to decode the QR code
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert",
+        });
+
+        // If a QR code is found, display the result
+        if (code) {
+          console.log("QR code detected:", code.data);
+          resultDiv.textContent = `Scanned Number: ${code.data}`;
+        } else {
+          console.log("No QR code detected.");
+          resultDiv.textContent = "No QR code detected.";
+        }
+      }
+
+      // Continue scanning
+      requestAnimationFrame(scanQRCode);
+    }
+
+    // Start scanning
+    scanQRCode();
+  } catch (error) {
+    console.error("Error accessing the camera:", error);
+    resultDiv.textContent = "Error accessing the camera. Please allow camera permissions.";
+  }
+}
+
+// Add click event listener to the capture button
+captureBtn.addEventListener("click", () => {
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
+  // Capture the current frame from the video
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  // Get image data from the canvas
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  console.log("Image data captured (manual):", imageData);
+
+  // Use jsQR to decode the QR code
+  const code = jsQR(imageData.data, imageData.width, imageData.height, {
+    inversionAttempts: "dontInvert",
+  });
+
+  // If a QR code is found, display the result
+  if (code) {
+    console.log("QR code detected (manual):", code.data);
+    resultDiv.textContent = `Scanned Number: ${code.data}`;
+  } else {
+    console.log("No QR code detected (manual).");
+    resultDiv.textContent = "No QR code detected.";
+  }
+});
+
+// Start the scanner when the page loads
+startScanner();
